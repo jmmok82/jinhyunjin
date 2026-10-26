@@ -1,0 +1,33 @@
+name: Sync from Original Repo
+
+on:
+  # 1. 이 설정 파일을 처음 저장할 때 즉시 실행
+  push:
+    paths:
+      - '.github/workflows/sync.yml'
+  # 2. 언제든 원하는 시점에 버튼 한 번으로 즉시 실행
+  workflow_dispatch:
+  # 3. 매일 한국 시간 자정(UTC 15:00)마다 자동 실행
+  schedule:
+    - cron: '0 15 * * *'
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout backup repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Sync with original repo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote add upstream https://github.com/jinhyunjin/jinhyunjin.github.io.git || true
+          git fetch upstream main
+          git merge upstream/main -X theirs --no-edit
+          git push origin main
